@@ -21,6 +21,9 @@
 // conversation variables
 var conversation_id, client_id;
 
+var inputHistory = [];
+var inputHistoryPointer = -1
+
 $(document).ready(function () {
   var $chatInput = $('.chat-window--message-input'),
     $jsonPanel = $('#json-panel .base--textarea'),
@@ -35,6 +38,34 @@ $(document).ready(function () {
     }
   });
 
+
+  $chatInput.keydown(function(event){
+    switch(event.which){
+    	case 13: // enter
+    	  inputHistory.push($chatInput.val());
+    	  inputHistoryPointer = inputHistory.length;
+    	break;
+    	case 38: // up
+    	if(inputHistoryPointer > 0){
+    	   inputHistoryPointer--;
+		   $chatInput.val(inputHistory[inputHistoryPointer]);
+    	}
+
+    	break;
+    	case 40: // down
+    	if(inputHistory.length > 0 && inputHistoryPointer < inputHistory.length - 1){
+    	   inputHistoryPointer++;
+		   $chatInput.val(inputHistory[inputHistoryPointer]);
+    	}
+      else if(inputHistoryPointer == inputHistory.length - 1){
+        $chatInput.val("");
+        inputHistoryPointer++;
+      }
+    	break;
+    }
+
+  });
+  
   var converse = function(userText) {
     $loading.show();
     // $chatInput.hide();
@@ -63,9 +94,8 @@ $(document).ready(function () {
         conversation_id = dialog.conversation.conversation_id;
         client_id = dialog.conversation.client_id;
 
-        console.log(dialog);
         var texts = dialog.conversation.response;
-        var response = texts.join('&lt;br/&gt;'); // &lt;br/&gt; is <br/>
+        var response = texts.join('<br/>'); // &lt;br/&gt; is <br/>
 
         $chatInput.show();
         $chatInput[0].focus();
@@ -122,15 +152,84 @@ $(document).ready(function () {
       });
   };
 
+function getTagContent(text, tagName){
+
+	var linkRegexp = new RegExp("<"+tagName+">(((?!<\/"+tagName+">).)*)</"+tagName+">", "g")
+	var arr = [];
+  var matchedLinks;
+
+  while(matchedLinks = linkRegexp.exec(text)){
+    arr.push(matchedLinks[1]);
+  }
+  return arr;
+}
+
+function replaceMctLinksByHtmlLinks(text){
+    var text = text;
+    var linksContent = getTagContent(text, "mct:link");
+
+  linksContent.forEach(function(item){
+    var url = getTagContent(item, "mct:url")[0];
+    var label = getTagContent(item, "mct:label")[0];
+
+    var link = "<a href=\""+url+"\" target=\"_blank\">"+label+"</a>";
+
+   var regExp = new RegExp("<mct:link>"+item+"</mct:link>", "g");
+
+   text = text.replace(regExp, link);
+
+  });
+  
+  return text;
+}
+
+function replaceAutolearnItemsByButtons(text){
+    var output = text;
+    var itemsContent = getTagContent(text, "mct:autolearnitems");
+
+  itemsContent.forEach(function(itemGroup){
+    var itemsText = getTagContent(itemGroup, "mct:item");
+
+    itemsText.forEach(function(innerText){
+        var regExp = new RegExp("<mct:item>"+innerText+"</mct:item>", "g");
+        var button = "<button class=\"wds-input\">"+innerText+"</button>";
+        output = output.replace(regExp, button);
+    });
+
+  });
+
+  output = output.replace(/<mct:autolearnitems>/g, "");
+  output = output.replace(/<\/mct:autolearnitems>/g, "");
+
+  return output;
+}
+
+  var postProcessOutput = function(text) {
+      var output = text.replace(/<mct:input>/g, "<button class=\"wds-input\">");
+      output = output.replace(/<\/mct:input>/g, "</button>");
+      output = replaceMctLinksByHtmlLinks(output);
+      output = replaceAutolearnItemsByButtons(output);
+      return output;
+  };
+
   var talk = function(origin, text) {
     var $chatBox = $('.chat-box--item_' + origin).first().clone();
     var $loading = $('.loader');
-    $chatBox.find('p').html($('<p/>').html(text).text());
+    var text = postProcessOutput(text);
+    $chatBox.find('p').html($('<p/>').html(text).html());
     // $('.chat-box--pane').append($chatBox);
     $chatBox.insertBefore($loading);
     setTimeout(function() {
       $chatBox.removeClass('chat-box--item_HIDDEN');
     }, 100);
+    
+    $chatBox.find('button.wds-input').click(function(){
+      var text = $(this).text();
+      converse(text);
+      inputHistory.push(text);
+      inputHistoryPointer = inputHistory.length;
+  });
+
   };
 
   var addProperty = function($parent, name, value) {
