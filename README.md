@@ -88,10 +88,21 @@ Give it a try! Click the button below to fork into IBM DevOps Services and deplo
     }
     ```
   
-  2. Install [Node.js](http://nodejs.org/).
-  3. Go to the project folder in a terminal and run the `npm install` command.
-  4. Start the application by running `node app.js`.
-  5. Open `http://localhost:3000` to see the running application.
+  2. Replace `<missing-dialog-id>` in `var dialog_id = process.env.DIALOG_ID || dialog_id_in_json || '<missing-dialog-id>';` with `dialog_id` created using the [dialog-tool](https://github.com/watson-developer-cloud/dialog-tool) OR add `dialogs\dialog-id.json` manually in following format:
+
+  ```json
+    {
+        "pizza_sample_94b6e4d4": {
+            "id": "<dialog_id>",
+            "fullPath": "/dialogs/pizza_sample.xml"
+        }
+    }
+    ```
+
+  3. Install [Node.js](http://nodejs.org/).
+  4. Go to the project folder in a terminal and run the `npm install` command.
+  5. Start the application by running `node app.js`.
+  6. Open `http://localhost:3000` to see the running application.
 
 ## Troubleshooting
 
