@@ -32,9 +32,12 @@ var dialogService = {
                 cb(error);
             } else {
                 var dialogs = {};
-                JSON.parse(body).dialogs.forEach(function (el) {
-                    dialogs[el.name] = el.dialog_id;
-                });
+                var jsonBody = JSON.parse(body);
+                if(jsonBody.dialogs){                                
+                    jsonBody.dialogs.forEach(function (el) {
+                        dialogs[el.name] = el.dialog_id;
+                    });
+                }                  
                 cb(null, dialogs);
             }
         });

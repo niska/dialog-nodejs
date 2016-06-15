@@ -1070,6 +1070,33 @@ pre[class*=" language-"] {
     padding-top: 1.5rem;
     padding-bottom: 1.5rem; }
 
+.chat-window {
+  list-style: circle;
+}
+
+.chat-window ul {
+  list-style: circle;
+  margin: 0.5em 0em 1em 0.5em;
+}
+
+.chat-window a {
+  color: #325c80;
+}
+
+
+
+.chat-window button.wds-input {
+  background-color: #325c80;
+  border: 1px solid #325c80;
+  color:white;
+  padding: 0.1em 0.4em;
+}
+
+.chat-window button.wds-input:HOVER {
+  border: 1px solid #76B8F1;
+}
+
+
 .chat-box {
   position: relative;
   height: 20rem; }
